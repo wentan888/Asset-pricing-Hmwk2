@@ -1,0 +1,47 @@
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+
+data_M = pd.read_excel('Market_Portfolio.xlsx', header=0, index_col=0)
+data_I = pd.read_excel('Industry_Portfolios.xlsx', header=0, index_col=0)
+
+#Excess return
+Excess_I = data_I-0.13
+Excess_M = data_M-0.13
+
+x=Excess_M.values.reshape((-1,1))
+y=Excess_I.values.reshape((120,10))
+regr = LinearRegression().fit(x,y)
+#print(regr.intercept_)
+#print(regr.coef_)
+
+Regression_table = pd.DataFrame({'Intercept (Alpha)':regr.intercept_,'Coefficient (Beta)':regr.coef_.reshape(10,)},index = data_I.columns)
+#print(Regression_table)
+
+Mean_I=np.mean(data_I)
+Mean_M=np.mean(data_M)
+Mean_A=Mean_I.append(Mean_M)
+#print(Mean_A)
+Beta_I=Regression_table['Coefficient (Beta)']
+Beta_M=pd.Series([1],index=['Market'])
+Beta_A=Beta_I.append(Beta_M)
+y1=Mean_A.values.reshape(-1,1)
+x1=Beta_A.values.reshape(-1,1)
+print(y1)
+print(Beta_A)
+
+regr2 = LinearRegression().fit(x1,y1)
+#print(regr2.intercept_)
+#print(regr2.coef_)
+
+R=np.arange(0,2,0.01).reshape(200,1)
+Alpha_SML= regr2.intercept_
+Beta_SML= regr2.coef_
+SML=Alpha_SML + Beta_SML*R
+plt.figure()
+plt.xlabel('Beta')
+plt.ylabel('Returns %')
+plt.plot(R,SML,'-r')
+plt.scatter(x1,y1)
+print(Beta_SML)
